@@ -64,10 +64,12 @@ html_template = '''
             required
             >
             <input type="hidden" name="random-word" value="{{ random_word }}">
+            <input type="hidden" name="lives" value="{{ lives }}">
                 <button type="submit" class="btn" name="reset" value="dont-reset">Enter</button>
                 <button type="submit" class="btn" name="reset" value="reset">Reset</button>
             </form>
 <h2 class="message">{{ message }}</h2>
+<h2 class="lives">Lives: {{ lives_hearts }}</h2>
 </body>
 </html>
 '''
@@ -78,23 +80,37 @@ def render():
     word_list = ['something', 'nothing', 'anything', "cupboard", "pillow", "coffee maker", "bed", "spoon", "blanket", "knife", "stove", "sink", "washing machine", "pot", "dish", "fridge", "sofa", "stool", "cup", "fork", "glass"]
     box = ''
     message = ''
+    correct_messages = ['correct!!!', 'nice one!', 'well done!', 'on fire!!!', 'spectacular!!!', 'keep it up!']
+    incorrect_messages = ['oops, try again!!!', 'not quite...', 'better luck next time!', 'close, but no cigar!', 'almost there...', 'keep trying!']
+    lives = 5
+    lives_hearts = '❤️' * lives
 
     if request.method == 'POST':
         random_word = request.form.get('random-word')
         box = request.form.get('inp-box').lower()
+        lives = int(request.form.get('lives'))
         if box == random_word:
-            message = 'correct!!!'
+            message = random.choice(correct_messages)
         else:
-            message = 'oops, try again!!!'
+            message = random.choice(incorrect_messages)
+            lives -= 1
+            if lives <= 0:
+                message = 'Game Over!!!'
+                random_word = random.choice(word_list)
+                lives = 5
+
     else:
         random_word = random.choice(word_list)
+        lives = 5
 
     reset = request.form.get('reset')
     if reset == 'reset':
         box = ''
         random_word = random.choice(word_list)
+        lives = int(request.form.get('lives'))
 
-    rendered_html = render_template_string(html_template, box=box, message=message, random_word=random_word)
+    lives_hearts = '❤️' * lives
+    rendered_html = render_template_string(html_template, box=box, message=message, random_word=random_word, lives_hearts=lives_hearts, lives=lives)
     return rendered_html
 
 if __name__ == '__main__':

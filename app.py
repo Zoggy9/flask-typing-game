@@ -48,11 +48,16 @@ html_template = '''
         background-color: black;
         padding: 5px;
     }
+    
+    .coin-num {
+        color: gold;
+    }
     </style>
     <link rel="icon" href="https://png.pngtree.com/png-vector/20240816/ourlarge/pngtree-empty-laboratory-conical-flask-on-a-transparent-background-free-and-clipart-png-image_13503663.png">
 </head>
 
 <body>
+<header><h2 class="lives">Lives: {{ lives_hearts }}</h2><h2 class="coins">Coins: <div class="coin-num">{{ coins }}</div></h2></header>
 <h1>Test flask api</h1>
 <h2>Enter the word "{{ random_word }}", please</h2>
     <form method="POST" action="/" class="url-form">
@@ -65,11 +70,11 @@ html_template = '''
             >
             <input type="hidden" name="random-word" value="{{ random_word }}">
             <input type="hidden" name="lives" value="{{ lives }}">
+            <input type="hidden" name="coins" value="{{ coins }}">
                 <button type="submit" class="btn" name="reset" value="dont-reset">Enter</button>
                 <button type="submit" class="btn" name="reset" value="reset">Reset</button>
             </form>
 <h2 class="message">{{ message }}</h2>
-<h2 class="lives">Lives: {{ lives_hearts }}</h2>
 </body>
 </html>
 '''
@@ -83,34 +88,41 @@ def render():
     correct_messages = ['correct!!!', 'nice one!', 'well done!', 'on fire!!!', 'spectacular!!!', 'keep it up!']
     incorrect_messages = ['oops, try again!!!', 'not quite...', 'better luck next time!', 'close, but no cigar!', 'almost there...', 'keep trying!']
     lives = 5
-    lives_hearts = '❤️' * lives
+    coins = 0
 
     if request.method == 'POST':
         random_word = request.form.get('random-word')
         box = request.form.get('inp-box').lower()
         lives = int(request.form.get('lives'))
+        coins = int(request.form.get('coins'))
         if box == random_word:
             message = random.choice(correct_messages)
+            coins += 10
         else:
             message = random.choice(incorrect_messages)
+            coins -= 10
             lives -= 1
             if lives <= 0:
                 message = 'Game Over!!!'
                 random_word = random.choice(word_list)
                 lives = 5
+                coins = 0
 
     else:
         random_word = random.choice(word_list)
         lives = 5
+        coins = 0
 
     reset = request.form.get('reset')
     if reset == 'reset':
         box = ''
         random_word = random.choice(word_list)
         lives = int(request.form.get('lives'))
+        coins = int(request.form.get('coins'))
+        
 
     lives_hearts = '❤️' * lives
-    rendered_html = render_template_string(html_template, box=box, message=message, random_word=random_word, lives_hearts=lives_hearts, lives=lives)
+    rendered_html = render_template_string(html_template, box=box, message=message, random_word=random_word, lives_hearts=lives_hearts, lives=lives, coins=coins)
     return rendered_html
 
 if __name__ == '__main__':
